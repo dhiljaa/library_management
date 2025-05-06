@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Middleware global (urutan penting!)
+        $middleware->append([
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+    
         // Alias middleware lokal
         $middleware->alias([
             'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
@@ -19,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
+    
     ->withExceptions(function (Exceptions $exceptions) {
         // Tambahkan konfigurasi handler error di sini jika diperlukan
     })
