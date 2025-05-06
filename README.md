@@ -182,7 +182,7 @@ Proyek ini menggunakan lisensi [MIT](LICENSE).
 
 Untuk pertanyaan atau kontribusi:
 **Nama:** \[Nama Anda]
-**Email:** \[[email@example.com](mailto:ahmadfadhil289@gmail.com)]
+**Email:** \[[ahmadfadhil289@gmail.com](mailto:ahmadfadhil289@gmail.com)]
 **GitHub:** [github.com/dhiljaa](https://github.com/dhiljaa)
 
 ```
