@@ -1,8 +1,7 @@
-Berikut adalah contoh **`README.md`** profesional untuk proyek API Laravel **SUNGOKONG BOOK**, lengkap dengan cara instalasi, fitur API, teknologi yang digunakan, dan struktur proyek — cocok untuk diunggah ke GitHub:
 
----
 
-````markdown
+
+
 # 📚 SUNGOKONG BOOK - Laravel REST API
 
 SUNGOKONG BOOK adalah RESTful API backend untuk aplikasi perpustakaan digital, dibangun menggunakan **Laravel 11**. API ini mendukung fitur autentikasi, manajemen buku, peminjaman, ulasan buku, serta dashboard khusus untuk admin dan staff.
