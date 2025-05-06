@@ -75,16 +75,16 @@ cd sungokong-api
 ```bash
 composer install
 ```
-# Install Sanctum
+### Install Sanctum
 ```bash
 composer require laravel/sanctum
 ```
 
-# Publish config jika perlu
+### Publish config jika perlu
 ```bash
 php artisan vendor:publish --tag=sanctum-config
 ```
-# Jalankan migrasi untuk Sanctum
+### Jalankan migrasi untuk Sanctum
 ```bash
 php artisan migrate
 ```
