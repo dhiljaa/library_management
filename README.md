@@ -1,66 +1,179 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Berikut adalah contoh **`README.md`** profesional untuk proyek API Laravel **SUNGOKONG BOOK**, lengkap dengan cara instalasi, fitur API, teknologi yang digunakan, dan struktur proyek — cocok untuk diunggah ke GitHub:
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+````markdown
+# 📚 SUNGOKONG BOOK - Laravel REST API
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+SUNGOKONG BOOK adalah RESTful API backend untuk aplikasi perpustakaan digital, dibangun menggunakan **Laravel 11**. API ini mendukung fitur autentikasi, manajemen buku, peminjaman, ulasan buku, serta dashboard khusus untuk admin dan staff.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Fitur Utama
 
-## Learning Laravel
+### 🔐 Authentication
+- `POST /register` - Registrasi user
+- `POST /login` - Login dan generate token
+- `POST /logout` - Logout dan revoke token
+- `GET /me` - Dapatkan informasi user saat ini
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 👤 Profile
+- `GET /profile` - Ambil data profil user
+- `PUT /profile` - Update profil user
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 📚 Books
+- `GET /books` - Lihat semua buku
+- `GET /books/top` - Buku paling populer
+- `GET /books/category/{category}` - Filter berdasarkan kategori
+- `GET /books/{id}` - Detail buku
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### 🔧 Admin Only
+- `POST /admin/books` - Tambah buku
+- `PUT /admin/books/{id}` - Update buku
+- `DELETE /admin/books/{id}` - Hapus buku
 
-## Laravel Sponsors
+### 📖 Loans
+- `POST /loans` - Pinjam buku
+- `GET /loans/history` - Riwayat peminjaman user
+- `PUT /loans/{id}/return` - Kembalikan buku
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### 🔧 Admin / Staff
+- `GET /admin/loans` - Lihat semua peminjaman
+- `PUT /admin/loans/{id}` - Update status pinjaman
+- `GET /staff/loans` - Lihat pinjaman (staff)
+- `PUT /staff/loans/{id}` - Update status (staff)
 
-### Premium Partners
+### 🌟 Review
+- `GET /books/{bookId}/reviews` - Lihat ulasan buku
+- `POST /reviews` - Tambah review (user)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 📊 Statistik (Admin Only)
+- `GET /admin/statistik` - Statistik buku, user, peminjaman, dll
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛠️ Teknologi yang Digunakan
 
-## Code of Conduct
+- Laravel 11 (REST API)
+- Sanctum (token-based auth)
+- MySQL (database)
+- Laravel Feature Test (untuk pengujian otomatis)
+- Laravel Seeder & Factory (data dummy)
+- Role-based Access Control (admin, staff, user)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## ⚙️ Instalasi
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 1. Clone Repository
+```bash
+git clone https://github.com/username/sungokong-api.git
+cd sungokong-api
+````
 
-## License
+### 2. Install Dependency
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer install
+```
+
+### 3. Konfigurasi `.env`
+
+Salin file `.env` dan atur koneksi database:
+
+```bash
+cp .env.example .env
+```
+
+Sesuaikan `.env`:
+
+```
+DB_DATABASE=sungokong
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 4. Generate Key & Migrate
+
+```bash
+php artisan key:generate
+php artisan migrate --seed
+```
+
+### 5. Jalankan Server
+
+```bash
+php artisan serve
+```
+
+---
+
+## 🧪 Testing
+
+Untuk menjalankan pengujian otomatis (Feature Test):
+
+```bash
+php artisan test
+```
+
+---
+
+## 🗂️ Struktur Folder (API)
+
+```
+routes/
+  └── api/
+      ├── auth.php
+      ├── books.php
+      ├── loans.php
+      ├── reviews.php
+      ├── profile.php
+      ├── admin/
+      │   ├── books.php
+      │   ├── loans.php
+      │   └── statistik.php
+      └── staff/
+          └── loans.php
+
+app/
+  └── Http/
+      └── Controllers/
+          ├── AuthController.php
+          ├── BookController.php
+          ├── LoanController.php
+          ├── ReviewController.php
+          ├── ProfileController.php
+          └── Admin/
+              ├── BookController.php
+              ├── LoanController.php
+              └── StatistikController.php
+```
+
+---
+
+## 👥 Role Akses
+
+| Role  | Akses Fitur                        |
+| ----- | ---------------------------------- |
+| Admin | Semua fitur termasuk statistik     |
+| Staff | Peminjaman (lihat dan update)      |
+| User  | Login, profil, pinjam, review buku |
+
+---
+
+## 📄 Lisensi
+
+Proyek ini menggunakan lisensi [MIT](LICENSE).
+
+---
+
+## 📬 Kontak
+
+Untuk pertanyaan atau kontribusi:
+**Nama:** \[Nama Anda]
+**Email:** \[[email@example.com](mailto:ahmadfadhil289@gmail.com)]
+**GitHub:** [github.com/dhiljaa](https://github.com/dhiljaa)
+
+```
+
+```
