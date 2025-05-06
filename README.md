@@ -181,10 +181,10 @@ Proyek ini menggunakan lisensi [MIT](LICENSE).
 ## 📬 Kontak
 
 Untuk pertanyaan atau kontribusi:
-**Nama:** \[Nama Anda]
+**Nama:** \[Ahmad Fadhil]
 **Email:** \[[ahmadfadhil289@gmail.com](mailto:ahmadfadhil289@gmail.com)]
 **GitHub:** [github.com/dhiljaa](https://github.com/dhiljaa)
 
 ```
-
+Welcome To Game
 ```
