@@ -60,7 +60,7 @@ Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentika
    ```bash
    git clone https://github.com/username/sungokong-book.git
    cd sungokong-book
-````
+``
 
 2. Install dependencies:
 
@@ -141,7 +141,7 @@ MIT License © 2025 Sungokong Book Team
 
 ---
 
-Jika ada pertanyaan, silakan hubungi melalui \[[email@example.com](mailto:email@example.com)].
+Jika ada pertanyaan, silakan hubungi melalui \[[ahmadfadhil289@hmail.com](mailto:ahmadfadhil289@gmail.com)].
 
 ---
 
@@ -149,7 +149,3 @@ Jika ada pertanyaan, silakan hubungi melalui \[[email@example.com](mailto:email@
 
 ```
 
----
-
-Kalau mau saya buatkan juga untuk frontend Flutter-nya, atau butuh bagian README lain (contoh environment, API docs detail, dll), tinggal bilang ya!
-```
