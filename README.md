@@ -1,127 +1,105 @@
 
+# SUNGOKONG BOOK - API Backend Laravel 11
 
-
-
-# 📚 SUNGOKONG BOOK - Laravel REST API
-
-SUNGOKONG BOOK adalah RESTful API backend untuk aplikasi perpustakaan digital, dibangun menggunakan **Laravel 11**. API ini mendukung fitur autentikasi, manajemen buku, peminjaman, ulasan buku, serta dashboard khusus untuk admin dan staff.
+Sistem backend API untuk aplikasi perpustakaan digital **SUNGOKONG BOOK** menggunakan Laravel 11 dan Sanctum.  
+Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentikasi, manajemen buku, peminjaman, review, serta dashboard admin dan staff.
 
 ---
 
-## 🚀 Fitur Utama
+## Fitur Utama
 
-### 🔐 Authentication
-- `POST /register` - Registrasi user
-- `POST /login` - Login dan generate token
-- `POST /logout` - Logout dan revoke token
-- `GET /me` - Dapatkan informasi user saat ini
+- **Autentikasi & Otorisasi**
+  - Registrasi, login, logout menggunakan Laravel Sanctum (token-based)
+  - Role-based access control (Admin, Staff, User)
 
-### 👤 Profile
-- `GET /profile` - Ambil data profil user
-- `PUT /profile` - Update profil user
+- **Manajemen Buku**
+  - CRUD buku lengkap dengan kategori
+  - Upload cover buku dan avatar user
+  - Filter buku berdasarkan kategori dan rating
 
-### 📚 Books
-- `GET /books` - Lihat semua buku
-- `GET /books/top` - Buku paling populer
-- `GET /books/category/{category}` - Filter berdasarkan kategori
-- `GET /books/{id}` - Detail buku
+- **Peminjaman Buku**
+  - Peminjaman buku oleh user
+  - Tracking status peminjaman (dipinjam, dikembalikan, terlambat)
+  - Kelola peminjaman oleh admin/staff
 
-#### 🔧 Admin Only
-- `POST /admin/books` - Tambah buku
-- `PUT /admin/books/{id}` - Update buku
-- `DELETE /admin/books/{id}` - Hapus buku
+- **Review Buku**
+  - User dapat memberikan rating dan ulasan pada buku
+  - Statistik rating buku
 
-### 📖 Loans
-- `POST /loans` - Pinjam buku
-- `GET /loans/history` - Riwayat peminjaman user
-- `PUT /loans/{id}/return` - Kembalikan buku
+- **Profil User**
+  - Lihat dan edit profil, termasuk avatar
 
-#### 🔧 Admin / Staff
-- `GET /admin/loans` - Lihat semua peminjaman
-- `PUT /admin/loans/{id}` - Update status pinjaman
-- `GET /staff/loans` - Lihat pinjaman (staff)
-- `PUT /staff/loans/{id}` - Update status (staff)
-
-### 🌟 Review
-- `GET /books/{bookId}/reviews` - Lihat ulasan buku
-- `POST /reviews` - Tambah review (user)
-
-### 📊 Statistik (Admin Only)
-- `GET /admin/statistik` - Statistik buku, user, peminjaman, dll
+- **Dashboard Admin & Staff**
+  - Kelola data buku, kategori, peminjaman, dan user
+  - Statistik penggunaan aplikasi
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## Struktur API
 
-- Laravel 11 (REST API)
-- Sanctum (token-based auth)
-- MySQL (database)
-- Laravel Feature Test (untuk pengujian otomatis)
-- Laravel Seeder & Factory (data dummy)
-- Role-based Access Control (admin, staff, user)
+- `POST /api/register` — Registrasi user baru
+- `POST /api/login` — Login dan dapatkan token
+- `POST /api/logout` — Logout dan hapus token
+- `GET /api/me` — Profil user saat ini
+- `GET /api/books` — Daftar buku dengan filter dan pagination
+- `POST /api/books` — Tambah buku (Admin/Staff)
+- `PUT /api/books/{id}` — Update buku (Admin/Staff)
+- `DELETE /api/books/{id}` — Hapus buku (Admin/Staff)
+- `GET /api/loans` — Daftar peminjaman user
+- `POST /api/loans` — Pinjam buku
+- `PUT /api/loans/{id}/return` — Kembalikan buku
+- `POST /api/reviews` — Tambah review buku
+- `GET /api/admin/users` — Kelola user (Admin)
+- ...dan lain-lain sesuai dokumentasi lengkap.
 
 ---
 
-## ⚙️ Instalasi
+## Instalasi
 
-### 1. Clone Repository
-```bash
-git clone https://github.com/username/sungokong-api.git
-cd sungokong-api
+1. Clone repository ini:
+   ```bash
+   git clone https://github.com/username/sungokong-book.git
+   cd sungokong-book
 ````
 
-### 2. Install Dependency
+2. Install dependencies:
 
-```bash
-composer install
-```
-### Install Sanctum
-```bash
-composer require laravel/sanctum
-```
+   ```bash
+   composer install
+   ```
 
-### Publish config jika perlu
-```bash
-php artisan vendor:publish --tag=sanctum-config
-```
-### Jalankan migrasi untuk Sanctum
-```bash
-php artisan migrate
-```
-### 3. Konfigurasi `.env`
+3. Salin file environment dan konfigurasi:
 
-Salin file `.env` dan atur koneksi database:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-```bash
-cp .env.example .env
-```
+   Sesuaikan konfigurasi database dan mail di `.env`.
 
-Sesuaikan `.env`:
+4. Migrasi dan seed database:
 
-```
-DB_DATABASE=sungokong
-DB_USERNAME=root
-DB_PASSWORD=
-```
+   ```bash
+   php artisan migrate --seed
+   ```
 
-### 4. Generate Key & Migrate
+5. Buat symbolic link storage untuk akses file publik:
 
-```bash
-php artisan key:generate
-php artisan migrate --seed
-```
+   ```bash
+   php artisan storage:link
+   ```
 
-### 5. Jalankan Server
+6. Jalankan server:
 
-```bash
-php artisan serve
-```
+   ```bash
+   php artisan serve
+   ```
 
 ---
 
-## 🧪 Testing
+## Testing
 
-Untuk menjalankan pengujian otomatis (Feature Test):
+Untuk menjalankan automated feature tests:
 
 ```bash
 php artisan test
@@ -129,62 +107,49 @@ php artisan test
 
 ---
 
-## 🗂️ Struktur Folder (API)
+## Struktur Folder Penting
 
-```
-routes/
-  └── api/
-      ├── auth.php
-      ├── books.php
-      ├── loans.php
-      ├── reviews.php
-      ├── profile.php
-      ├── admin/
-      │   ├── books.php
-      │   ├── loans.php
-      │   └── statistik.php
-      └── staff/
-          └── loans.php
+* `app/Models` — Model Eloquent (User, Book, Loan, Review, Category)
+* `app/Http/Controllers/API` — Controller API untuk fitur frontend Flutter
+* `app/Http/Controllers/Admin` — Controller dashboard admin/staff
+* `routes/api.php` — Definisi route API dengan middleware auth dan role
+* `database/migrations` — Skrip migrasi database
+* `storage/app/public/avatars` — Folder untuk file avatar user
+* `resources/views/admin` — Blade templates dashboard admin
 
-app/
-  └── Http/
-      └── Controllers/
-          ├── AuthController.php
-          ├── BookController.php
-          ├── LoanController.php
-          ├── ReviewController.php
-          ├── ProfileController.php
-          └── Admin/
-              ├── BookController.php
-              ├── LoanController.php
-              └── StatistikController.php
+---
+
+## Teknologi
+
+* Laravel 11
+* PHP 8.2
+* Laravel Sanctum (API Token Authentication)
+* MySQL (database)
+* PHPUnit (testing)
+
+---
+
+## Kontribusi
+
+Kontribusi sangat disambut! Silakan fork repository ini dan buat pull request dengan fitur baru atau perbaikan bug.
+
+---
+
+## Lisensi
+
+MIT License © 2025 Sungokong Book Team
+
+---
+
+Jika ada pertanyaan, silakan hubungi melalui \[[email@example.com](mailto:email@example.com)].
+
+---
+
+**SUNGOKONG BOOK** — Solusi digital untuk perpustakaan modern.
+
 ```
 
 ---
 
-## 👥 Role Akses
-
-| Role  | Akses Fitur                        |
-| ----- | ---------------------------------- |
-| Admin | Semua fitur termasuk statistik     |
-| Staff | Peminjaman (lihat dan update)      |
-| User  | Login, profil, pinjam, review buku |
-
----
-
-## 📄 Lisensi
-
-Proyek ini menggunakan lisensi [MIT](LICENSE).
-
----
-
-## 📬 Kontak
-
-Untuk pertanyaan atau kontribusi:
-**Nama:** \[Ahmad Fadhil]
-**Email:** \[[ahmadfadhil289@gmail.com](mailto:ahmadfadhil289@gmail.com)]
-**GitHub:** [github.com/dhiljaa](https://github.com/dhiljaa)
-
-```
-Welcome To Game
+Kalau mau saya buatkan juga untuk frontend Flutter-nya, atau butuh bagian README lain (contoh environment, API docs detail, dll), tinggal bilang ya!
 ```
