@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('books', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('author');
-            $table->string('publisher')->nullable(); // ✅ kolom publisher
-            $table->year('year')->nullable();        // ✅ kolom year
-            $table->string('category');
-            $table->text('description')->nullable();
-            $table->integer('stock')->default(0);    // ✅ disesuaikan dari 'quantity' ke 'stock'
-            $table->unsignedBigInteger('borrowed_count')->default(0); // top books
-            $table->timestamps();
-        });
+      Schema::create('books', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->string('author');
+    $table->string('publisher')->nullable();
+    $table->year('year')->nullable();
+    $table->string('category');
+    $table->text('description')->nullable();
+    $table->string('image_url')->nullable(); // ✅ tambahkan di sini
+    $table->integer('stock')->default(0);
+    $table->unsignedBigInteger('borrowed_count')->default(0);
+    $table->timestamps();
+});
+
     }
 
     /**

@@ -30,9 +30,19 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // User biasa
+        // User biasa (random 5)
         User::factory(5)->create([
-            'role' => 'user'
+            'role' => 'user',
         ]);
+
+        // User spesifik dengan email user@gmail.com dan password user123
+        User::updateOrCreate(
+            ['email' => 'user@gmail.com'],
+            [
+                'name' => 'User Biasa',
+                'password' => Hash::make('user123'),
+                'role' => 'user',
+            ]
+        );
     }
 }

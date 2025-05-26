@@ -12,10 +12,14 @@ class Loan extends Model
     protected $fillable = [
         'user_id',
         'book_id',
-        'loan_date',
-        'due_date',
-        'return_date',
+        'borrowed_at',   // sesuaikan dengan migrasi
+        'returned_at',   // sesuaikan dengan migrasi
         'status',
+    ];
+
+    protected $casts = [
+        'borrowed_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
 
     public function user()

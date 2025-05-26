@@ -4,23 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
-use App\Models\Loan;
 use App\Models\User;
+use App\Models\Loan;
+use Carbon\Carbon;
 
 class StatistikController extends Controller
 {
     public function index()
     {
-        $totalBooks = Book::count();
-        $totalUsers = User::count();
-        $totalLoans = Loan::count();
-        $activeLoans = Loan::where('status', 'borrowed')->count();
+        $startOfWeek = Carbon::now()->startOfWeek(); // Senin
+        $endOfWeek = Carbon::now()->endOfWeek();     // Minggu
 
-        return response()->json([
-            'total_books' => $totalBooks,
-            'total_users' => $totalUsers,
-            'total_loans' => $totalLoans,
-            'active_loans' => $activeLoans,
-        ]);
+        $weekly_borrowers = Loan::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->distinct('user_id')
+            ->count('user_id');
+
+        $data = [
+            'total_books' => Book::count(),
+            'total_users' => User::count(),
+            'total_loans' => Loan::count(),
+            'active_loans' => Loan::whereNull('returned_at')->count(),
+            'weekly_borrowers' => $weekly_borrowers,
+        ];
+
+        return view('admin.dashboard', $data);
     }
 }

@@ -9,53 +9,60 @@ use Illuminate\Validation\Rule;
 
 class UserAdminController extends Controller
 {
-    // 👥 GET /api/admin/users
+    // ✅ Tampilkan daftar user
     public function index()
     {
-        $users = User::where('role', '!=', 'admin')->get();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User list retrieved successfully',
-            'data' => $users
-        ]);
+        $users = User::where('role', '!=', 'admin')->paginate(10);
+        return view('admin.users.index', compact('users'));
     }
 
-    // 🔄 PUT /api/admin/users/{id}/role
-    public function updateRole(Request $request, $id)
+    // ✅ Form edit user (nama + email + role)
+    public function edit($id)
     {
+        $user = User::findOrFail($id);
+        return view('admin.users.edit', compact('user'));
+    }
+
+    // ✅ Update data user
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
         $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', Rule::in(['user', 'staff', 'admin'])],
         ]);
 
-        $user = User::findOrFail($id);
-        $user->role = $request->role;
-        $user->save();
+        // Cegah downgrade admin
+        if ($user->role === 'admin' && $request->role !== 'admin') {
+            return redirect()->back()->with('error', 'Tidak bisa menurunkan role admin.');
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User role updated successfully',
-            'data' => $user
+        // Update
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
         ]);
+
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui.');
     }
 
-    // ❌ DELETE /api/admin/users/{id}
+    // ✅ Hapus user
     public function destroy($id)
     {
         $user = User::findOrFail($id);
 
         if ($user->role === 'admin') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Cannot delete admin user'
-            ], 403);
+            return redirect()->back()->with('error', 'Tidak bisa menghapus admin.');
+        }
+
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'Tidak bisa menghapus akun sendiri.');
         }
 
         $user->delete();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User deleted successfully'
-        ]);
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
     }
 }

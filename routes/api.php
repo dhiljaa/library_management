@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update']);
 
     // 📚 Books (User)
-    Route::get('/books', [BookController::class, 'index']);
+    Route::get('/public-books', [BookController::class, 'index']);
     Route::get('/books/top', [BookController::class, 'top']);
     Route::get('/books/category/{category}', [BookController::class, 'byCategory']);
     Route::get('/books/{id}', [BookController::class, 'show']);
@@ -58,9 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // 🛠️ Admin Routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // 📚 Manage Books
-        Route::post('/books', [BookAdminController::class, 'store']);
-        Route::put('/books/{id}', [BookAdminController::class, 'update']);
-        Route::delete('/books/{id}', [BookAdminController::class, 'destroy']);
+        Route::post(uri: '/books', action: [BookAdminController::class, 'store']);
+        Route::put('/books/{id}', action: [BookAdminController::class, 'update']);
+        Route::delete('/books/{id}', action: [BookAdminController::class, 'destroy']);
 
         // 🗂️ Manage Categories
         Route::apiResource('categories', AdminCategoryController::class); // ✅ Admin kategori

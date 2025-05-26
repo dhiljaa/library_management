@@ -8,10 +8,25 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $categories = Category::all();
-        return response()->json(['data' => $categories]);
+
+        if ($request->wantsJson()) {
+            // Kalau request dari API (expect JSON)
+            return response()->json(['data' => $categories]);
+        }
+
+        // Kalau request dari browser (Blade view)
+        return view('admin.categories.index', compact('categories'));
+    }
+
+    public function create(Request $request)
+    {
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Method not allowed'], 405);
+        }
+        return view('admin.categories.create');
     }
 
     public function store(Request $request)
@@ -22,7 +37,20 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        return response()->json($category, 201);
+        if ($request->wantsJson()) {
+            return response()->json($category, 201);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    public function edit(Request $request, Category $category)
+    {
+        if ($request->wantsJson()) {
+            return response()->json($category);
+        }
+
+        return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
@@ -33,13 +61,21 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return response()->json($category);
+        if ($request->wantsJson()) {
+            return response()->json($category);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
         $category->delete();
 
-        return response()->json(['message' => 'Category deleted successfully']);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Category deleted successfully']);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }
