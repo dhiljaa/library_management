@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\StatistikController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController; // 👉 Controller untuk Admin
 use App\Http\Controllers\Staff\LoanStaffController;
+use App\Http\Controllers\Admin\NotificationController;
+
 
 // ==========================
 // ✅ PUBLIC ROUTES
@@ -58,9 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // 🛠️ Admin Routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // 📚 Manage Books
-        Route::post(uri: '/books', action: [BookAdminController::class, 'store']);
-        Route::put('/books/{id}', action: [BookAdminController::class, 'update']);
-        Route::delete('/books/{id}', action: [BookAdminController::class, 'destroy']);
+        Route::post('/books', [BookAdminController::class, 'store']);
+        Route::put('/books/{id}', [BookAdminController::class, 'update']);
+        Route::delete('/books/{id}', [BookAdminController::class, 'destroy']);
 
         // 🗂️ Manage Categories
         Route::apiResource('categories', AdminCategoryController::class); // ✅ Admin kategori
@@ -76,7 +78,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // 📊 Statistics
         Route::get('/statistik', [StatistikController::class, 'index']);
+
+        // 🔔 Notifications (Admin & Staff)
+        // Kalau mau agar admin & staff bisa akses, bisa pisahkan middleware role di luar prefix admin, tapi ini contoh di dalam admin prefix
     });
+
+   Route::middleware(['role:admin,staff'])->prefix('admin')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+});
 
     // 🧰 Staff Routes
     Route::middleware('role:staff')->prefix('staff')->group(function () {

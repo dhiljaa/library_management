@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Loan;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class LoanController extends Controller
 {
+    // Daftar semua peminjaman aktif dan yang sedang berlangsung user
     public function index()
     {
-        // Tampilkan semua pinjaman user termasuk buku terkait
         $loans = auth()->user()->loans()
             ->with('book')
             ->get();
@@ -23,19 +24,20 @@ class LoanController extends Controller
                     'user_id' => $loan->user_id,
                     'borrowed_at' => $loan->borrowed_at,
                     'returned_at' => $loan->returned_at,
-                    'status' => $loan->status, // tambah status supaya jelas
+                    'status' => $loan->status,
                 ];
             }),
         ]);
     }
 
+    // Pinjam buku baru
     public function store(Request $request)
     {
         $validated = $request->validate([
             'book_id' => 'required|exists:books,id',
         ]);
 
-        // Cek apakah buku sudah dipinjam dan belum dikembalikan (status 'borrowed')
+        // Cek apakah user sudah pinjam buku ini dan belum dikembalikan
         $already = auth()->user()->loans()
             ->where('book_id', $validated['book_id'])
             ->where('status', 'borrowed')
@@ -48,11 +50,18 @@ class LoanController extends Controller
             ], 422);
         }
 
-        // Simpan pinjaman baru dengan status 'borrowed'
         $loan = auth()->user()->loans()->create([
             'book_id' => $validated['book_id'],
             'borrowed_at' => now(),
             'status' => 'borrowed',
+            'returned_at' => null,
+        ]);
+
+        // Notifikasi untuk admin & staff
+        Notification::create([
+            'title' => 'New Book Loan',
+            'message' => 'User ' . auth()->user()->name . ' borrowed the book with ID: ' . $loan->book_id,
+            'is_read' => false,
         ]);
 
         return response()->json([
@@ -69,6 +78,7 @@ class LoanController extends Controller
         ], 201);
     }
 
+    // Pengembalian buku
     public function return($id)
     {
         $loan = auth()->user()->loans()->findOrFail($id);
@@ -80,7 +90,6 @@ class LoanController extends Controller
             ], 400);
         }
 
-        // Update status dan waktu pengembalian
         $loan->update([
             'status' => 'returned',
             'returned_at' => now(),
@@ -92,9 +101,9 @@ class LoanController extends Controller
         ]);
     }
 
+    // Riwayat peminjaman yang sudah dikembalikan
     public function history()
     {
-        // Ambil semua pinjaman yang sudah dikembalikan (status 'returned')
         $loans = auth()->user()->loans()
             ->where('status', 'returned')
             ->with('book')

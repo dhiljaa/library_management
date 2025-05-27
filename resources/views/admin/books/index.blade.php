@@ -27,22 +27,43 @@
     </div>
 
     <!-- Search Form -->
-    <form method="GET" action="{{ route('admin.books.index') }}" class="mb-8 max-w-md relative">
+    <form method="GET" action="{{ route('admin.books.index') }}" class="mb-8 max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+    {{-- Input keyword pencarian --}}
+    <div class="relative col-span-1">
         <input 
             type="text" 
             name="search" 
-            value="{{ request('search', $search ?? '') }}"
+            value="{{ request('search') }}" 
             placeholder="Cari judul atau penulis..." 
-            autocomplete="off"
-            aria-label="Search books"
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
         <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
         </div>
-    </form>
+    </div>
+
+    {{-- Dropdown kategori --}}
+    <div>
+        <select name="category_id" class="w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="">Semua Kategori</option>
+            @foreach ($categories as $category)
+                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    {{-- Tombol submit --}}
+    <div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
+            Cari
+        </button>
+    </div>
+</form>
+
 
     <div class="overflow-x-auto rounded-lg shadow border border-gray-200">
         <table class="min-w-full divide-y divide-gray-200 table-auto">

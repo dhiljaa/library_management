@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             BookSeeder::class,
             LoanSeeder::class,
             ReviewSeeder::class,
+            CategorySeeder::class,
         ]);
     }
 }

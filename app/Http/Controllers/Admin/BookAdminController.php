@@ -12,13 +12,11 @@ class BookAdminController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil query search dari request (jika ada)
         $search = $request->input('search');
+        $categoryId = $request->input('category_id');
 
-        // Query builder dengan eager loading category
         $query = Book::with('category');
 
-        // Jika ada keyword search, filter berdasarkan judul atau penulis
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
@@ -26,18 +24,24 @@ class BookAdminController extends Controller
             });
         }
 
-        // Pagination, 10 item per halaman (bisa disesuaikan)
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
         $books = $query->orderBy('title')->paginate(10);
+        $books->appends([
+            'search' => $search,
+            'category_id' => $categoryId,
+        ]);
 
-        // Supaya query search tetap dipertahankan di pagination links
-        $books->appends(['search' => $search]);
+        $categories = Category::all();
 
-        return view('admin.books.index', compact('books', 'search'));
+        return view('admin.books.index', compact('books', 'search', 'categoryId', 'categories'));
     }
 
     public function create()
     {
-        $categories = Category::all(); // Untuk dropdown kategori
+        $categories = Category::all();
         return view('admin.books.create', compact('categories'));
     }
 
@@ -55,7 +59,6 @@ class BookAdminController extends Controller
             'image_url' => 'nullable|url',
         ]);
 
-        // Handle file upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('books', 'public');
             $validated['image_url'] = 'storage/' . $path;
@@ -63,7 +66,6 @@ class BookAdminController extends Controller
             $validated['image_url'] = $request->image_url;
         }
 
-        // Set default borrowed_count
         $validated['borrowed_count'] = 0;
 
         Book::create($validated);
@@ -95,9 +97,7 @@ class BookAdminController extends Controller
             'image_url' => 'nullable|url',
         ]);
 
-        // Handle file upload
         if ($request->hasFile('image')) {
-            // Hapus file lama jika ada
             if ($book->image_url && str_starts_with($book->image_url, 'storage/')) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $book->image_url));
             }
@@ -118,7 +118,6 @@ class BookAdminController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        // Hapus file gambar jika disimpan lokal
         if ($book->image_url && str_starts_with($book->image_url, 'storage/')) {
             Storage::disk('public')->delete(str_replace('storage/', '', $book->image_url));
         }

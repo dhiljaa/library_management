@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Models\Notification;
 
 class AuthController extends Controller
 {
@@ -25,6 +26,14 @@ class AuthController extends Controller
             'role'     => 'user', // default role
         ]);
 
+        // 🔔 Tambahkan notifikasi ke tabel notifications, sertakan user_id untuk relasi
+        Notification::create([
+            'type'    => 'user_baru',
+            'title'   => 'User Baru Terdaftar',
+            'message' => "User dengan nama {$user->name} baru saja mendaftar.",
+            'user_id' => $user->id,
+        ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -34,7 +43,7 @@ class AuthController extends Controller
                 'user'  => $user,
                 'token' => $token,
             ]
-        ], 201); // ✅ ubah status code menjadi 201 Created
+        ], 201); // ✅ status code 201 Created
     }
 
     // 🔐 Login

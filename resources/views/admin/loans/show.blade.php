@@ -3,87 +3,93 @@
 @section('title', 'Detail Peminjaman #' . $loan->id)
 
 @section('content')
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">Detail Peminjaman #{{ $loan->id }}</h1>
+<div class="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+    <h1 class="text-3xl font-extrabold mb-8 text-gray-900">Detail Peminjaman #{{ $loan->id }}</h1>
 
     {{-- Informasi Peminjaman --}}
-    <div class="bg-white shadow rounded p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Informasi Peminjaman</h2>
-        <p><strong>Status:</strong> 
+    <section class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-5 text-gray-800">Informasi Peminjaman</h2>
+        <p class="mb-2"><span class="font-semibold">Status:</span> 
             @if($loan->status === 'borrowed')
-                <span class="text-yellow-600 font-semibold">Dipinjam</span>
+                <span class="text-yellow-500 font-semibold">Dipinjam</span>
             @elseif($loan->status === 'returned')
                 <span class="text-green-600 font-semibold">Dikembalikan</span>
             @endif
         </p>
-        <p><strong>Tanggal Pinjam:</strong> {{ $loan->borrowed_at->format('d M Y H:i') }}</p>
-        <p><strong>Tanggal Kembali:</strong> 
+        <p class="mb-2"><span class="font-semibold">Tanggal Pinjam:</span> {{ $loan->borrowed_at->format('d M Y H:i') }}</p>
+        <p><span class="font-semibold">Tanggal Kembali:</span> 
             {{ $loan->returned_at ? $loan->returned_at->format('d M Y H:i') : '-' }}
         </p>
-    </div>
+    </section>
 
-    {{-- Informasi User --}}
-    <div class="bg-white shadow rounded p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Informasi Pengguna</h2>
-        <p><strong>Nama:</strong> {{ $loan->user->name }}</p>
-        <p><strong>Email:</strong> {{ $loan->user->email }}</p>
-    </div>
+    {{-- Informasi Pengguna --}}
+    <section class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-5 text-gray-800">Informasi Pengguna</h2>
+        <p class="mb-2"><span class="font-semibold">Nama:</span> {{ $loan->user->name }}</p>
+        <p><span class="font-semibold">Email:</span> {{ $loan->user->email }}</p>
+    </section>
 
     {{-- Informasi Buku --}}
-    <div class="bg-white shadow rounded p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Informasi Buku</h2>
-        <p><strong>Judul:</strong> {{ $loan->book->title }}</p>
-        <p><strong>Pengarang:</strong> {{ $loan->book->author }}</p>
-        <p><strong>Kategori:</strong> {{ $loan->book->category->name ?? '-' }}</p>
-    </div>
+    <section class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-5 text-gray-800">Informasi Buku</h2>
+        <p class="mb-2"><span class="font-semibold">Judul:</span> {{ $loan->book->title }}</p>
+        <p class="mb-2"><span class="font-semibold">Pengarang:</span> {{ $loan->book->author }}</p>
+        <p><span class="font-semibold">Kategori:</span> {{ $loan->book->category->name ?? '-' }}</p>
+    </section>
 
     {{-- Form Update Status --}}
-    <div class="bg-white shadow rounded p-6">
-        <h2 class="text-xl font-semibold mb-4">Update Status Peminjaman</h2>
+    <section class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-semibold mb-5 text-gray-800">Update Status Peminjaman</h2>
 
         @if(session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
+            <div class="mb-6 p-4 bg-green-100 text-green-800 rounded-md border border-green-300">
                 {{ session('success') }}
             </div>
         @endif
 
-        <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST">
+        <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
 
-            <label for="status" class="block mb-2 font-semibold">Status</label>
-            <select name="status" id="status" class="border rounded p-2 w-full mb-4 @error('status') border-red-500 @enderror">
-                <option value="borrowed" {{ $loan->status === 'borrowed' ? 'selected' : '' }}>Dipinjam</option>
-                <option value="returned" {{ $loan->status === 'returned' ? 'selected' : '' }}>Dikembalikan</option>
-            </select>
-            @error('status')
-                <p class="text-red-600 mb-4">{{ $message }}</p>
-            @enderror
+            <div>
+                <label for="status" class="block mb-2 font-semibold text-gray-700">Status</label>
+                <select name="status" id="status" 
+                    class="w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('status') border-red-500 @enderror">
+                    <option value="borrowed" {{ $loan->status === 'borrowed' ? 'selected' : '' }}>Dipinjam</option>
+                    <option value="returned" {{ $loan->status === 'returned' ? 'selected' : '' }}>Dikembalikan</option>
+                </select>
+                @error('status')
+                    <p class="mt-1 text-red-600 text-sm">{{ $message }}</p>
+                @enderror
+            </div>
 
-            <label for="returned_at" class="block mb-2 font-semibold">Tanggal Kembali (jika dikembalikan)</label>
-            <input 
-                type="date" 
-                name="returned_at" 
-                id="returned_at" 
-                value="{{ old('returned_at', $loan->returned_at ? $loan->returned_at->format('Y-m-d') : '') }}"
-                class="border rounded p-2 w-full @error('returned_at') border-red-500 @enderror"
-                {{ $loan->status === 'returned' ? '' : 'disabled' }}>
-            @error('returned_at')
-                <p class="text-red-600 mb-4">{{ $message }}</p>
-            @enderror
+            <div>
+                <label for="returned_at" class="block mb-2 font-semibold text-gray-700">Tanggal Kembali (jika dikembalikan)</label>
+                <input 
+                    type="date" 
+                    name="returned_at" 
+                    id="returned_at" 
+                    value="{{ old('returned_at', $loan->returned_at ? $loan->returned_at->format('Y-m-d') : '') }}"
+                    class="w-full rounded-md border border-gray-300 p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('returned_at') border-red-500 @enderror"
+                    {{ $loan->status === 'returned' ? '' : 'disabled' }}>
+                @error('returned_at')
+                    <p class="mt-1 text-red-600 text-sm">{{ $message }}</p>
+                @enderror
+            </div>
 
-            <button type="submit" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">
+            <button type="submit" 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition duration-150">
                 Update Status
             </button>
         </form>
-    </div>
+    </section>
 
-    <div class="mt-6">
-        <a href="{{ route('admin.loans.index') }}" class="text-blue-600 hover:underline">&larr; Kembali ke Daftar Peminjaman</a>
+    <div class="mt-8 text-center">
+        <a href="{{ route('admin.loans.index') }}" 
+           class="inline-block text-blue-600 hover:underline font-semibold">&larr; Kembali ke Daftar Peminjaman</a>
     </div>
 </div>
 
-{{-- Script untuk toggle field returned_at --}}
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -100,7 +106,7 @@
         }
 
         statusSelect.addEventListener('change', toggleReturnedAt);
-        toggleReturnedAt(); // Inisialisasi awal
+        toggleReturnedAt();
     });
 </script>
 @endpush

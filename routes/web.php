@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\LoanAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Staff\LoanStaffController;
 use App\Http\Controllers\Admin\ProfileAdminController;
+use App\Http\Controllers\Admin\NotificationController; // <-- tambah import controller notifikasi
 
 // Halaman landing
 Route::get('/', function () {
@@ -30,8 +31,8 @@ Route::middleware('auth')->group(function () {
      */
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
 
-  Route::get('profile/edit', [ProfileAdminController::class, 'edit'])->name('profile.edit');
-Route::put('profile/update', [ProfileAdminController::class, 'update'])->name('profile.update');
+        Route::get('profile/edit', [ProfileAdminController::class, 'edit'])->name('profile.edit');
+        Route::put('profile/update', [ProfileAdminController::class, 'update'])->name('profile.update');
 
         Route::get('/dashboard', [StatistikController::class, 'index'])->name('dashboard');
 
@@ -53,6 +54,20 @@ Route::put('profile/update', [ProfileAdminController::class, 'update'])->name('p
 
         // Statistik
         Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');
+
+        // Notification Routes untuk admin dan staff (tambahkan middleware role juga)
+    });
+
+    /**
+     * =======================
+     * Admin & Staff Notification Routes
+     * =======================
+     */
+    Route::middleware('role:admin,staff')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
+        Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     });
 
     /**

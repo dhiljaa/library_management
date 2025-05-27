@@ -32,6 +32,7 @@ class LoanAdminController extends Controller
 
     /**
      * Update status peminjaman (misal: borrowed, returned).
+     * Mendukung update untuk kembalikan dan pinjam ulang.
      */
     public function updateStatus(Request $request, $id)
     {
@@ -40,14 +41,23 @@ class LoanAdminController extends Controller
         $request->validate([
             'status' => 'required|in:borrowed,returned',
             'returned_at' => 'nullable|date',
+            'borrowed_at' => 'nullable|date',
         ]);
 
-        $loan->status = $request->status;
+        $newStatus = $request->status;
 
-        // Jika status returned, isi returned_at jika belum ada
-        if ($loan->status === 'returned' && !$loan->returned_at) {
-            $loan->returned_at = $request->returned_at ?? now();
+        if ($newStatus === 'returned') {
+            // Jika status returned, set returned_at jika belum ada
+            if (!$loan->returned_at) {
+                $loan->returned_at = $request->returned_at ?? now();
+            }
+        } elseif ($newStatus === 'borrowed') {
+            // Jika status pinjam ulang, reset returned_at dan update borrowed_at
+            $loan->returned_at = null;
+            $loan->borrowed_at = $request->borrowed_at ?? now();
         }
+
+        $loan->status = $newStatus;
 
         $loan->save();
 
