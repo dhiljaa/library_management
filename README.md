@@ -115,7 +115,7 @@ Screenshot hasil tampilan dan fitur CRUD Backend:
 
 
 
-![Kategori Page](public/screenshoots/Kategori_Page.png)  
+![Kategori Page](public/screenshoots/stastistik.png)  
 ![Kelola Buku](public/screenshoots/kelola_buku.png)  
 ![Kelola Kategori](public/screenshoots/kelola_kategori.png)  
 ![Kelola Peminjaman](public/screenshoots/kelola_peminjaman.png)  
