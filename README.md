@@ -115,12 +115,12 @@ Screenshot hasil tampilan dan fitur CRUD Backend:
 
 
 
-![Kategori Page](public/screenshots/Kategori_Page.png)  
-![Kelola Buku](public/screenshots/kelola_buku.png)  
-![Kelola Kategori](public/screenshots/kelola_kategori.png)  
-![Kelola Peminjaman](public/screenshots/kelola_peminjaman.png)  
-![Kelola User](public/screenshots/kelola_user.png)  
-![Login](public/screenshots/login.png)
+![Kategori Page](public/screenshoots/Kategori_Page.png)  
+![Kelola Buku](public/screenshoots/kelola_buku.png)  
+![Kelola Kategori](public/screenshoots/kelola_kategori.png)  
+![Kelola Peminjaman](public/screenshoots/kelola_peminjaman.png)  
+![Kelola User](public/screenshoots/kelola_user.png)  
+![Login](public/screenshoots/login.png)
 
 
 ## Struktur Folder Penting
