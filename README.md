@@ -113,6 +113,8 @@ php artisan test
 
 Screenshot hasil tampilan dan fitur CRUD Backend:
 
+
+
 ![Kategori Page](public/screenshots/Kategori_Page.png)  
 ![Kelola Buku](public/screenshots/kelola_buku.png)  
 ![Kelola Kategori](public/screenshots/kelola_kategori.png)  
