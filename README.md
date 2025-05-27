@@ -107,6 +107,20 @@ php artisan test
 
 ---
 
+---
+
+## Screenshots
+
+Screenshot hasil tampilan dan fitur CRUD Backend:
+
+![Kategori Page](public/screenshots/Kategori_Page.png)  
+![Kelola Buku](public/screenshots/kelola_buku.png)  
+![Kelola Kategori](public/screenshots/kelola_kategori.png)  
+![Kelola Peminjaman](public/screenshots/kelola_peminjaman.png)  
+![Kelola User](public/screenshots/kelola_user.png)  
+![Login](public/screenshots/login.png)
+
+
 ## Struktur Folder Penting
 
 * `app/Models` — Model Eloquent (User, Book, Loan, Review, Category)
