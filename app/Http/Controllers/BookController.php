@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    // 📚 Get all books
+    // 📚 Get all books with category detail
     public function index()
     {
-        $books = Book::all();
+        $books = Book::with('category')->get();
 
         return response()->json([
             'status' => 'success',
@@ -18,11 +18,11 @@ class BookController extends Controller
         ]);
     }
 
-    // 📈 Get top books
+    // 📈 Get top books based on number of loans with category detail
     public function top()
     {
-        // Misalnya berdasarkan jumlah peminjaman (dengan relasi 'loans')
-        $books = Book::withCount('loans')
+        $books = Book::with('category')
+                     ->withCount('loans')
                      ->orderByDesc('loans_count')
                      ->take(10)
                      ->get();
@@ -33,10 +33,12 @@ class BookController extends Controller
         ]);
     }
 
-    // 📚 Get books by category
-    public function byCategory($category)
+    // 📚 Get books by category id with category detail
+    public function byCategory($category_id)
     {
-        $books = Book::where('category', $category)->get();
+        $books = Book::with('category')
+                     ->where('category_id', $category_id)
+                     ->get();
 
         return response()->json([
             'status' => 'success',
@@ -44,10 +46,10 @@ class BookController extends Controller
         ]);
     }
 
-    // 📖 Get book detail
+    // 📖 Get book detail by id with category detail
     public function show($id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::with('category')->findOrFail($id);
 
         return response()->json([
             'status' => 'success',
