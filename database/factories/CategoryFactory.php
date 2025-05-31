@@ -9,15 +9,25 @@ class CategoryFactory extends Factory
 {
     protected $model = Category::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $kategoriIndonesia = [
+            'Sastra',
+            'Pendidikan',
+            'Agama',
+            'Teknologi',
+            'Sejarah',
+            'Anak-anak',
+            'Bisnis',
+            'Kesehatan',
+            'Hobi & Minat',
+            'Fiksi',
+            'Non-Fiksi',
+            'Budaya',
+        ];
+
         return [
-            'name' => $this->faker->unique()->word(), // pakai unique supaya tidak ada duplikat nama kategori
+            'name' => $this->faker->unique()->randomElement($kategoriIndonesia),
         ];
     }
 }

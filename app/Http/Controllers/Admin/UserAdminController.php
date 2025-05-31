@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class UserAdminController extends Controller
 {
-    // ✅ Tampilkan daftar user
+    // ✅ Tampilkan daftar user (kecuali admin)
     public function index()
     {
         $users = User::where('role', '!=', 'admin')->paginate(10);
@@ -23,15 +24,16 @@ class UserAdminController extends Controller
         return view('admin.users.edit', compact('user'));
     }
 
-    // ✅ Update data user
+    // ✅ Update data user (dengan avatar opsional)
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', Rule::in(['user', 'staff', 'admin'])],
+            'name'   => ['required', 'string', 'max:255'],
+            'email'  => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'role'   => ['required', Rule::in(['user', 'staff', 'admin'])],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], // max 2MB
         ]);
 
         // Cegah downgrade admin
@@ -39,12 +41,27 @@ class UserAdminController extends Controller
             return redirect()->back()->with('error', 'Tidak bisa menurunkan role admin.');
         }
 
-        // Update
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ]);
+        // Upload avatar jika ada
+        if ($request->hasFile('avatar')) {
+            // Hapus avatar lama jika ada
+            if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
+                Storage::disk('public')->delete('avatars/' . $user->avatar);
+            }
+
+            $avatarFile = $request->file('avatar');
+            $avatarName = uniqid() . '.' . $avatarFile->getClientOriginalExtension();
+
+            // Simpan file ke disk 'public' di folder avatars
+            $avatarFile->storeAs('avatars', $avatarName, 'public');
+
+            $user->avatar = $avatarName;
+        }
+
+        // Update data user
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->role = $request->role;
+        $user->save();
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui.');
     }
@@ -62,7 +79,13 @@ class UserAdminController extends Controller
             return redirect()->back()->with('error', 'Tidak bisa menghapus akun sendiri.');
         }
 
+        // Hapus avatar jika ada
+        if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
+            Storage::disk('public')->delete('avatars/' . $user->avatar);
+        }
+
         $user->delete();
+
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
     }
 }

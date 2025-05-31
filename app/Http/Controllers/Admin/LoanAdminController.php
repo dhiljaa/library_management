@@ -4,76 +4,98 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class LoanAdminController extends Controller
 {
-    /**
-     * Tampilkan daftar peminjaman dengan relasi user dan book.
-     * Data diurutkan berdasarkan tanggal pinjam terbaru.
-     */
+    // Tampilkan daftar semua peminjaman
     public function index()
     {
         $loans = Loan::with(['user', 'book'])
-            ->orderByDesc('borrowed_at')
+            ->orderByDesc('created_at')
             ->paginate(15);
 
         return view('admin.loans.index', compact('loans'));
     }
 
-    /**
-     * Tampilkan detail peminjaman berdasarkan ID.
-     */
+    // Tampilkan detail peminjaman
     public function show($id)
     {
         $loan = Loan::with(['user', 'book'])->findOrFail($id);
         return view('admin.loans.show', compact('loan'));
     }
 
-    /**
-     * Update status peminjaman (misal: borrowed, returned).
-     * Mendukung update untuk kembalikan dan pinjam ulang.
-     */
+    // Update status peminjaman
     public function updateStatus(Request $request, $id)
     {
-        $loan = Loan::findOrFail($id);
+        $loan = Loan::with('user', 'book')->findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:borrowed,returned',
-            'returned_at' => 'nullable|date',
+            'status' => 'required|in:pending,approved,borrowed,returned',
             'borrowed_at' => 'nullable|date',
+            'returned_at' => 'nullable|date',
         ]);
 
         $newStatus = $request->status;
+        $oldStatus = $loan->status;
 
-        if ($newStatus === 'returned') {
-            // Jika status returned, set returned_at jika belum ada
-            if (!$loan->returned_at) {
-                $loan->returned_at = $request->returned_at ?? now();
-            }
-        } elseif ($newStatus === 'borrowed') {
-            // Jika status pinjam ulang, reset returned_at dan update borrowed_at
-            $loan->returned_at = null;
-            $loan->borrowed_at = $request->borrowed_at ?? now();
-        }
+       if ($newStatus === 'approved' && $oldStatus === 'pending') {
+    $loan->borrowed_at = $request->borrowed_at ?? now();
+    $loan->status = 'approved';
 
-        $loan->status = $newStatus;
+    Notification::create([
+        'type' => 'approved',  // tambahkan ini
+        'title' => 'Peminjaman Disetujui',
+        'message' => 'Admin menyetujui peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . '.',
+        'is_read' => false,
+        'user_id' => $loan->user->id,   // opsional, tapi biasanya penting
+        'book_id' => $loan->book->id,   // opsional, tapi biasanya penting
+    ]);
+}
+
+if ($newStatus === 'borrowed') {
+    $loan->borrowed_at = $request->borrowed_at ?? now();
+    $loan->returned_at = null;
+    $loan->status = 'borrowed';
+
+    Notification::create([
+        'type' => 'borrowed',  // tambahkan ini
+        'title' => 'Peminjaman Dimulai (Admin)',
+        'message' => 'Admin menandai buku "' . $loan->book->title . '" telah dipinjam oleh ' . $loan->user->name . '.',
+        'is_read' => false,
+        'user_id' => $loan->user->id,
+        'book_id' => $loan->book->id,
+    ]);
+}
+
+if ($newStatus === 'returned') {
+    $loan->returned_at = $request->returned_at ?? now();
+    $loan->status = 'returned';
+
+    Notification::create([
+        'type' => 'returned',  // tambahkan ini
+        'title' => 'Pengembalian Buku (Admin)',
+        'message' => 'Admin menandai peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . ' sebagai telah dikembalikan.',
+        'is_read' => false,
+        'user_id' => $loan->user->id,
+        'book_id' => $loan->book->id,
+    ]);
+}
 
         $loan->save();
 
         return redirect()->route('admin.loans.index')
-            ->with('success', 'Status peminjaman berhasil diperbarui');
+            ->with('success', 'Status peminjaman berhasil diperbarui.');
     }
 
-    /**
-     * Hapus data peminjaman.
-     */
+    // Hapus data peminjaman
     public function destroy($id)
     {
         $loan = Loan::findOrFail($id);
         $loan->delete();
 
         return redirect()->route('admin.loans.index')
-            ->with('success', 'Data peminjaman berhasil dihapus');
+            ->with('success', 'Data peminjaman berhasil dihapus.');
     }
 }

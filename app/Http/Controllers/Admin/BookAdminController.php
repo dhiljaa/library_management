@@ -15,7 +15,8 @@ class BookAdminController extends Controller
         $search = $request->input('search');
         $categoryId = $request->input('category_id');
 
-        $query = Book::with('category');
+        $query = Book::with('category')
+                    ->withAvg('reviews', 'rating'); // Ambil rata-rata rating review
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -98,6 +99,7 @@ class BookAdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
+            // Hapus file lama jika ada
             if ($book->image_url && str_starts_with($book->image_url, 'storage/')) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $book->image_url));
             }
@@ -118,6 +120,7 @@ class BookAdminController extends Controller
     {
         $book = Book::findOrFail($id);
 
+        // Hapus file gambar lama jika ada
         if ($book->image_url && str_starts_with($book->image_url, 'storage/')) {
             Storage::disk('public')->delete(str_replace('storage/', '', $book->image_url));
         }
@@ -126,5 +129,29 @@ class BookAdminController extends Controller
 
         return redirect()->route('admin.books.index')
             ->with('success', 'Buku berhasil dihapus.');
+    }
+
+    public function show($id)
+    {
+        $book = Book::with('category')
+                    ->withAvg('reviews', 'rating') // Ambil rata-rata rating review
+                    ->findOrFail($id);
+
+        return view('admin.books.show', compact('book'));
+    }
+
+    public function popular()
+    {
+        $popular_books = Book::with('category')
+            ->withCount('loans')
+            ->withAvg('reviews', 'rating') // Ambil rata-rata rating review
+            ->orderByDesc('loans_count')
+            ->paginate(3);
+
+        $books = Book::with('category')
+            ->withAvg('reviews', 'rating') // Ambil rata-rata rating review
+            ->paginate(10);
+
+        return view('admin.dashboard', compact('popular_books', 'books'));
     }
 }

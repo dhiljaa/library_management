@@ -22,6 +22,9 @@ class Book extends Model
         'borrowed_count',
     ];
 
+    // Tambahkan properti appends agar 'rating' otomatis muncul di JSON/array
+    protected $appends = ['rating'];
+
     /**
      * Relasi: Satu buku dimiliki oleh satu kategori
      */
@@ -44,5 +47,14 @@ class Book extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * 🔥 Aksesor: Rata-rata rating dari semua review
+     * Mengembalikan nilai float rata-rata rating atau 0 jika belum ada review.
+     */
+    public function getRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 2);
     }
 }

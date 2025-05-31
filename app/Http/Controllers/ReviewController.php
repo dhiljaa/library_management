@@ -8,59 +8,63 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    // ✅ List all reviews for a specific book
+    // Hapus constructor supaya middleware tidak dobel
+
+    /**
+     * List all reviews for a specific book with pagination
+     */
     public function index($bookId)
     {
         $book = Book::findOrFail($bookId);
 
-        $reviews = $book->reviews()->with('user')->latest()->get();
+        $reviews = $book->reviews()
+            ->with('user:id,name')
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'List of reviews for book',
+            'message' => 'List of reviews for book: ' . $book->title,
             'data' => [
-                'book' => $book->title,
+                'book' => [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'author' => $book->author,
+                    'average_rating' => round($book->reviews()->avg('rating'), 2),
+                    'reviews_count' => $book->reviews()->count(),
+                ],
                 'reviews' => $reviews
             ]
         ]);
     }
 
-    // ✅ Store a new review (hanya 1 review per user per book)
-    public function store(Request $request)
+    /**
+     * Store or update a review (one review per user per book)
+     */
+    public function store(Request $request, $bookId)
     {
         $validated = $request->validate([
-            'book_id' => 'required|exists:books,id',
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
         ]);
 
-        // ❗Cek jika user sudah review buku yang sama
-        $existingReview = Review::where('book_id', $validated['book_id'])
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $userId = $request->user()->id;
 
-        if ($existingReview) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You have already reviewed this book.'
-            ], 422);
-        }
-
-        $review = Review::create([
-            'user_id' => $request->user()->id,
-            'book_id' => $validated['book_id'],
-            'rating' => $validated['rating'],
-            'comment' => $validated['comment'] ?? null,
-        ]);
+        $review = Review::updateOrCreate(
+            ['user_id' => $userId, 'book_id' => $bookId],
+            ['rating' => $validated['rating'], 'comment' => $validated['comment'] ?? null]
+        );
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Review submitted successfully',
+            'message' => $review->wasRecentlyCreated ? 'Review submitted successfully' : 'Review updated successfully',
             'data' => $review
-        ], 201);
+        ], $review->wasRecentlyCreated ? 201 : 200);
     }
 
-    // ✅ Update an existing review
+    /**
+     * Update an existing review explicitly
+     */
     public function update(Request $request, $id)
     {
         $review = Review::findOrFail($id);
@@ -86,7 +90,9 @@ class ReviewController extends Controller
         ]);
     }
 
-    // ✅ Delete a review
+    /**
+     * Delete a review
+     */
     public function destroy(Request $request, $id)
     {
         $review = Review::findOrFail($id);

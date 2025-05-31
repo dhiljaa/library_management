@@ -38,6 +38,9 @@ Route::middleware('auth')->group(function () {
 
         // Buku dan Kategori
         Route::resource('/books', BookAdminController::class);
+        // 🔥 Tambahkan di routes/api.php (dalam group role:admin)
+Route::get('/books/popular', [BookAdminController::class, 'popular']); // Buku paling laris
+
         Route::resource('/categories', AdminCategoryController::class);
 
         // Peminjaman

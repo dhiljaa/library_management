@@ -46,7 +46,16 @@
         <tbody>
             @forelse($users as $user)
             <tr class="even:bg-gray-50">
-                <td class="border border-gray-300 px-4 py-2">{{ $user->name }}</td>
+                <td class="border border-gray-300 px-4 py-2 flex items-center space-x-3">
+                    @if($user->avatar)
+                        <img src="{{ asset('storage/avatars/' . $user->avatar) }}" alt="Avatar" class="w-10 h-10 object-cover rounded-full border border-gray-300">
+                    @else
+                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm font-semibold">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <span>{{ $user->name }}</span>
+                </td>
                 <td class="border border-gray-300 px-4 py-2">{{ $user->email }}</td>
                 <td class="border border-gray-300 px-4 py-2">{{ ucfirst($user->role) }}</td>
                 <td class="border border-gray-300 px-4 py-2 space-x-2">

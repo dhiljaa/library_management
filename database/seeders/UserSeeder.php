@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
                 'name' => 'Admin Sungokong',
                 'password' => Hash::make('admin123'),
                 'role' => 'admin',
+                'email_verified_at' => now(), // rekomendasi tambahkan verified agar langsung aktif
             ]
         );
 
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
                 'name' => 'Staff',
                 'password' => Hash::make('password'),
                 'role' => 'staff',
+                'email_verified_at' => now(),
             ]
         );
 
@@ -42,6 +44,7 @@ class UserSeeder extends Seeder
                 'name' => 'User Biasa',
                 'password' => Hash::make('user123'),
                 'role' => 'user',
+                'email_verified_at' => now(),
             ]
         );
     }

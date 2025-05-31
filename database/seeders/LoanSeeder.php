@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Loan;
 use App\Models\User;
 use App\Models\Book;
@@ -12,29 +13,45 @@ class LoanSeeder extends Seeder
 {
     public function run()
     {
-        // Pastikan ada User dan Book dulu, jika belum ada buat dummy sederhana:
-        $user = User::first() ?? User::factory()->create();
-        $book = Book::first() ?? Book::factory()->create();
+        // Matikan foreign key checks supaya truncate aman
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        // Contoh 1: Peminjaman aktif (belum dikembalikan)
+        DB::table('loans')->truncate();
+        DB::table('books')->truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Buat user dan book baru
+        User::factory()->count(5)->create();
+        Book::factory()->count(10)->create();
+
+        // Ambil data user dan book
+        $users = User::all();
+        $books = Book::all();
+
+        // Pinjaman manual dengan status berbeda
         Loan::create([
-            'user_id' => $user->id,
-            'book_id' => $book->id,
+            'user_id' => $users->random()->id,
+            'book_id' => $books->random()->id,
             'borrowed_at' => Carbon::now()->subDays(3),
-            'returned_at' => null,  // belum dikembalikan
+            'returned_at' => null,
             'status' => 'borrowed',
         ]);
 
-        // Contoh 2: Peminjaman sudah dikembalikan
         Loan::create([
-            'user_id' => $user->id,
-            'book_id' => $book->id,
+            'user_id' => $users->random()->id,
+            'book_id' => $books->random()->id,
             'borrowed_at' => Carbon::now()->subDays(10),
-            'returned_at' => Carbon::now()->subDays(5),  // sudah dikembalikan
+            'returned_at' => Carbon::now()->subDays(5),
             'status' => 'returned',
         ]);
 
-        // Tambahan contoh beberapa data loan lain
-        Loan::factory()->count(13)->create(); // total jadi 15 peminjaman
+        // Buat 13 pinjaman acak, pakai user_id dan book_id dari data yang sudah ada
+        for ($i = 0; $i < 13; $i++) {
+            Loan::factory()->create([
+                'user_id' => $users->random()->id,
+                'book_id' => $books->random()->id,
+            ]);
+        }
     }
 }

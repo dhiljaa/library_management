@@ -30,43 +30,47 @@ class LoanController extends Controller
         ]);
     }
 
-    // Pinjam buku baru
+    // Ajukan pinjam buku baru
     public function store(Request $request)
     {
         $validated = $request->validate([
             'book_id' => 'required|exists:books,id',
         ]);
 
-        // Cek apakah user sudah pinjam buku ini dan belum dikembalikan
+        // Cek apakah user sudah mengajukan atau meminjam buku ini dan belum dikembalikan
         $already = auth()->user()->loans()
             ->where('book_id', $validated['book_id'])
-            ->where('status', 'borrowed')
+            ->whereIn('status', ['pending', 'approved', 'borrowed'])
             ->first();
 
         if ($already) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Book already borrowed and not yet returned',
+                'message' => 'Anda sudah memiliki pengajuan atau peminjaman aktif untuk buku ini.',
             ], 422);
         }
 
+        // Simpan data peminjaman
         $loan = auth()->user()->loans()->create([
             'book_id' => $validated['book_id'],
-            'borrowed_at' => now(),
-            'status' => 'borrowed',
+            'status' => 'pending',
+            'borrowed_at' => null,
             'returned_at' => null,
         ]);
 
-        // Notifikasi untuk admin & staff
+        // Kirim notifikasi ke admin/staff
         Notification::create([
-            'title' => 'New Book Loan',
-            'message' => 'User ' . auth()->user()->name . ' borrowed the book with ID: ' . $loan->book_id,
+            'type' => 'loan',
+            'title' => 'Pengajuan Peminjaman Buku',
+            'message' => 'User ' . auth()->user()->name . ' mengajukan peminjaman buku ID: ' . $loan->book_id,
             'is_read' => false,
+            'user_id' => auth()->id(),
+            'book_id' => $loan->book_id,
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Book borrowed successfully',
+            'message' => 'Pengajuan peminjaman berhasil dikirim. Menunggu persetujuan admin.',
             'data' => [
                 'id' => $loan->id,
                 'book_id' => $loan->book_id,
@@ -83,10 +87,10 @@ class LoanController extends Controller
     {
         $loan = auth()->user()->loans()->findOrFail($id);
 
-        if ($loan->status === 'returned') {
+        if (!in_array($loan->status, ['approved', 'borrowed'])) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Book already returned',
+                'message' => 'Buku belum dipinjam atau sudah dikembalikan.',
             ], 400);
         }
 
@@ -95,9 +99,19 @@ class LoanController extends Controller
             'returned_at' => now(),
         ]);
 
+        // Notifikasi untuk admin bahwa user telah mengembalikan buku
+        Notification::create([
+            'type' => 'return',
+            'title' => 'Pengembalian Buku',
+            'message' => 'User ' . auth()->user()->name . ' telah mengembalikan buku ID: ' . $loan->book_id,
+            'is_read' => false,
+            'user_id' => auth()->id(),
+            'book_id' => $loan->book_id,
+        ]);
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Book returned successfully',
+            'message' => 'Buku berhasil dikembalikan.',
         ]);
     }
 

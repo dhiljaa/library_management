@@ -16,7 +16,7 @@
             <th>ID</th>
             <th>Nama Pengguna</th>
             <th>Judul Buku</th>
-            <th>Kategori</th> {{-- Tambahan --}}
+            <th>Kategori</th>
             <th>Tanggal Pinjam</th>
             <th>Tanggal Kembali</th>
             <th>Status</th>
@@ -29,30 +29,53 @@
                 <td>{{ $loan->id }}</td>
                 <td>{{ $loan->user->name }}</td>
                 <td>{{ $loan->book->title }}</td>
-                <td>{{ $loan->book->category->name ?? '-' }}</td> {{-- Tambahan --}}
+                <td>{{ $loan->book->category->name ?? '-' }}</td>
                 <td>{{ $loan->borrowed_at ? $loan->borrowed_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') : '-' }}</td>
                 <td>{{ $loan->returned_at ? $loan->returned_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') : '-' }}</td>
                 <td>
-                    @if($loan->status === 'borrowed')
-                        <span class="badge bg-warning text-dark">Dipinjam</span>
-                    @else
-                        <span class="badge bg-success">Dikembalikan</span>
-                    @endif
+                    @switch($loan->status)
+                        @case('pending')
+                            <span class="badge bg-secondary">Pending</span>
+                            @break
+                        @case('approved')
+                            <span class="badge bg-primary">Disetujui</span>
+                            @break
+                        @case('borrowed')
+                            <span class="badge bg-warning text-dark">Dipinjam</span>
+                            @break
+                        @case('returned')
+                            <span class="badge bg-success">Dikembalikan</span>
+                            @break
+                        @default
+                            <span class="badge bg-dark">-</span>
+                    @endswitch
                 </td>
                 <td>
                     <a href="{{ route('admin.loans.show', $loan->id) }}" class="btn btn-info btn-sm">Detail</a>
 
-                    <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('PUT')
-                        @if($loan->status === 'borrowed')
-                            <input type="hidden" name="status" value="returned">
-                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Tandai sebagai dikembalikan?')">Kembalikan</button>
-                        @else
+                    {{-- Aksi sesuai status --}}
+                    @if($loan->status === 'pending')
+                        <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" style="display:inline-block;">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Setujui peminjaman ini?')">Setujui</button>
+                        </form>
+                    @elseif($loan->status === 'approved')
+                        <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" style="display:inline-block;">
+                            @csrf
+                            @method('PUT')
                             <input type="hidden" name="status" value="borrowed">
                             <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Tandai sebagai dipinjam?')">Pinjamkan</button>
-                        @endif
-                    </form>
+                        </form>
+                    @elseif($loan->status === 'borrowed')
+                        <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" style="display:inline-block;">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="status" value="returned">
+                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Tandai sebagai dikembalikan?')">Kembalikan</button>
+                        </form>
+                    @endif
 
                     <form action="{{ route('admin.loans.destroy', $loan->id) }}" method="POST" style="display:inline-block;">
                         @csrf
@@ -67,7 +90,7 @@
             </tr>
         @endforelse
     </tbody>
-</table>
+    </table>
 
     {{ $loans->links() }}
 </div>

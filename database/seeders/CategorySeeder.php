@@ -9,6 +9,23 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        Category::factory()->count(10)->create();
+        $kategoriIndonesia = [
+            'Sastra',
+            'Pendidikan',
+            'Agama',
+            'Teknologi',
+            'Sejarah',
+            'Anak-anak',
+            'Bisnis',
+            'Kesehatan',
+            'Hobi & Minat',
+            'Fiksi',
+            'Non-Fiksi',
+            'Budaya',
+        ];
+
+        foreach ($kategoriIndonesia as $kategori) {
+            Category::updateOrCreate(['name' => $kategori]);
+        }
     }
 }

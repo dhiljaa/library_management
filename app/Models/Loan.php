@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// Tambahkan use untuk model yang digunakan di relasi
+use App\Models\User;
+use App\Models\Book;
+
 class Loan extends Model
 {
     use HasFactory;

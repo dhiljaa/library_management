@@ -6,15 +6,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\CategoryController; // 👉 Controller untuk User
+use App\Http\Controllers\CategoryController; // User Controller
 use App\Http\Controllers\Admin\BookAdminController;
 use App\Http\Controllers\Admin\LoanAdminController;
 use App\Http\Controllers\Admin\StatistikController;
 use App\Http\Controllers\Admin\UserAdminController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategoryController; // 👉 Controller untuk Admin
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController; // Admin Controller
 use App\Http\Controllers\Staff\LoanStaffController;
 use App\Http\Controllers\Admin\NotificationController;
-
 
 // ==========================
 // ✅ PUBLIC ROUTES
@@ -44,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/books/{id}', [BookController::class, 'show']);
 
     // 📂 Categories (User)
-    Route::get('/categories', [CategoryController::class, 'index']); // ✅ Tambahan untuk user
+    Route::get('/categories', [CategoryController::class, 'index']);
 
     // 📝 Reviews
     Route::get('/books/{bookId}/reviews', [ReviewController::class, 'index']);
@@ -65,11 +64,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/books/{id}', [BookAdminController::class, 'destroy']);
 
         // 🗂️ Manage Categories
-        Route::apiResource('categories', AdminCategoryController::class); // ✅ Admin kategori
+        Route::apiResource('categories', AdminCategoryController::class);
 
         // 📋 Manage Loans
         Route::get('/loans', [LoanAdminController::class, 'index']);
-        Route::put('/loans/{id}', [LoanAdminController::class, 'update']);
+        // Update status pinjaman (misal update status 'borrowed' ke 'returned')
+        Route::put('/loans/{id}', [LoanAdminController::class, 'updateStatus']);
 
         // 👥 Manage Users
         Route::get('/users', [UserAdminController::class, 'index']);
@@ -78,17 +78,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // 📊 Statistics
         Route::get('/statistik', [StatistikController::class, 'index']);
-
-        // 🔔 Notifications (Admin & Staff)
-        // Kalau mau agar admin & staff bisa akses, bisa pisahkan middleware role di luar prefix admin, tapi ini contoh di dalam admin prefix
     });
 
-   Route::middleware(['role:admin,staff'])->prefix('admin')->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
-    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
-});
+    // 🔔 Notifications (Admin & Staff)
+    Route::middleware(['role:admin,staff'])->prefix('admin')->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/{id}', [NotificationController::class, 'show']);
+        Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    });
 
     // 🧰 Staff Routes
     Route::middleware('role:staff')->prefix('staff')->group(function () {
