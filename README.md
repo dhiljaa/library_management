@@ -77,19 +77,26 @@ Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentika
 
    Sesuaikan konfigurasi database dan mail di `.env`.
 
-4. Migrasi dan seed database:
-
-   ```bash
-   php artisan migrate --seed
-   ```
-
-5. Buat symbolic link storage untuk akses file publik:
+4. Buat symbolic link storage untuk akses file publik:
 
    ```bash
    php artisan storage:link
    ```
 
-6. Jalankan server:
+5. Migrasi dan seed database:
+
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. Libray Pdf:
+
+   ```bash
+   composer require barryvdh/laravel-snappy
+   ```
+
+
+7. Jalankan server:
 
    ```bash
    php artisan serve
