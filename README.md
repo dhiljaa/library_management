@@ -58,8 +58,8 @@ Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentika
 
 1. Clone repository ini:
    ```bash
-   git clone https://github.com/username/sungokong-book.git
-   cd sungokong-book
+   git clone https://github.com/dhiljaa/library_management.git
+   cd library_management
 ``
 
 2. Install dependencies:
