@@ -92,7 +92,7 @@ Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentika
 6. Migrasi dan seed database:
 
    ```bash
-   php artisan migrate --seed
+   php artisan migrate:fresh --seed
    ```
 
 7. Jalankan server:
