@@ -11,17 +11,17 @@ use Carbon\Carbon;
 
 class LoanAdminController extends Controller
 {
-    // Tampilkan daftar peminjaman dengan filter, sorting, dan pagination
+    // Menampilkan daftar peminjaman dengan filter, sorting, dan pagination
     public function index(Request $request)
     {
         $query = Loan::with(['user', 'book.category']);
 
-        // Filter berdasarkan status
+        // Filter berdasarkan status peminjaman
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter berdasarkan keyword pencarian gabungan user dan judul buku
+        // Filter pencarian gabungan berdasarkan nama user atau judul buku
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -34,17 +34,17 @@ class LoanAdminController extends Controller
             });
         }
 
-        // Filter bulan dan tahun berdasarkan borrowed_at
+        // Filter berdasarkan bulan dan tahun dari tanggal borrowed_at
         if ($request->filled('bulan') && $request->filled('tahun')) {
             $query->whereMonth('borrowed_at', $request->bulan)
                   ->whereYear('borrowed_at', $request->tahun);
         }
 
-        // Sorting dinamis
+        // Sorting dinamis dengan validasi field dan direction
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
 
-        $allowedSortFields = ['id', 'created_at', 'borrowed_at', 'returned_at', 'status'];
+        $allowedSortFields = ['id', 'created_at', 'borrowed_at', 'returned_at', 'status', 'penalty'];
         $allowedSortDirections = ['asc', 'desc'];
 
         if (!in_array($sortField, $allowedSortFields)) {
@@ -56,8 +56,9 @@ class LoanAdminController extends Controller
 
         $query->orderBy($sortField, $sortDirection);
 
+        // Pagination, batasi per halaman max 100
         $perPage = (int) $request->get('per_page', 15);
-        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
+        $perPage = ($perPage > 0 && $perPage <= 100) ? $perPage : 15;
 
         $loans = $query->paginate($perPage)->withQueryString();
 
@@ -73,12 +74,13 @@ class LoanAdminController extends Controller
             ]);
     }
 
+    // Fungsi pencarian alias memanggil index dengan request yang sama
     public function search(Request $request)
     {
         return $this->index($request);
     }
 
-    // Export data peminjaman ke PDF dengan filter dan judul bulan tahun dinamis
+    // Export daftar peminjaman ke PDF dengan filter dan label bulan tahun dinamis
     public function exportPDF(Request $request)
     {
         $query = Loan::with(['user', 'book.category']);
@@ -88,7 +90,7 @@ class LoanAdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter search gabungan user dan buku
+        // Filter pencarian gabungan user dan buku
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -107,11 +109,11 @@ class LoanAdminController extends Controller
                   ->whereYear('borrowed_at', $request->tahun);
         }
 
-        // Sorting
+        // Sorting dengan validasi
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
 
-        $allowedSortFields = ['id', 'created_at', 'borrowed_at', 'returned_at', 'status'];
+        $allowedSortFields = ['id', 'created_at', 'borrowed_at', 'returned_at', 'status', 'penalty'];
         $allowedSortDirections = ['asc', 'desc'];
 
         if (!in_array($sortField, $allowedSortFields)) {
@@ -141,20 +143,23 @@ class LoanAdminController extends Controller
         return $pdf->download('loans_' . now()->format('Ymd_His') . '.pdf');
     }
 
+    // Tampilkan detail peminjaman
     public function show($id)
     {
         $loan = Loan::with(['user', 'book'])->findOrFail($id);
         return view('admin.loans.show', compact('loan'));
     }
 
+    // Update status peminjaman dan buat notifikasi sesuai status baru
     public function updateStatus(Request $request, $id)
     {
         $loan = Loan::with('user', 'book')->findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:pending,approved,borrowed,returned',
+            'status' => 'required|in:pending,approved,borrowed,returned,overdue,rejected',
             'borrowed_at' => 'nullable|date',
             'returned_at' => 'nullable|date',
+            'is_penalty_paid' => 'nullable|boolean',
         ]);
 
         $newStatus = $request->status;
@@ -172,9 +177,18 @@ class LoanAdminController extends Controller
                 'user_id' => $loan->user->id,
                 'book_id' => $loan->book->id,
             ]);
-        }
+        } elseif ($newStatus === 'rejected' && $oldStatus === 'pending') {
+            $loan->status = 'rejected';
 
-        if ($newStatus === 'borrowed') {
+            Notification::create([
+                'type' => 'rejected',
+                'title' => 'Peminjaman Ditolak',
+                'message' => 'Admin menolak peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . '.',
+                'is_read' => false,
+                'user_id' => $loan->user->id,
+                'book_id' => $loan->book->id,
+            ]);
+        } elseif ($newStatus === 'borrowed') {
             $loan->borrowed_at = $request->borrowed_at ?? now();
             $loan->returned_at = null;
             $loan->status = 'borrowed';
@@ -187,11 +201,12 @@ class LoanAdminController extends Controller
                 'user_id' => $loan->user->id,
                 'book_id' => $loan->book->id,
             ]);
-        }
-
-        if ($newStatus === 'returned') {
+        } elseif ($newStatus === 'returned') {
             $loan->returned_at = $request->returned_at ?? now();
             $loan->status = 'returned';
+
+            // Hitung dan update denda otomatis (langsung simpan)
+            $loan->updatePenalty();
 
             Notification::create([
                 'type' => 'returned',
@@ -201,6 +216,25 @@ class LoanAdminController extends Controller
                 'user_id' => $loan->user->id,
                 'book_id' => $loan->book->id,
             ]);
+        } elseif ($newStatus === 'overdue') {
+            $loan->status = 'overdue';
+
+            Notification::create([
+                'type' => 'overdue',
+                'title' => 'Peminjaman Lewat Batas Waktu',
+                'message' => 'Peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . ' telah melewati batas waktu pengembalian.',
+                'is_read' => false,
+                'user_id' => $loan->user->id,
+                'book_id' => $loan->book->id,
+            ]);
+        } elseif ($newStatus === 'pending') {
+            // Jika rollback ke pending
+            $loan->status = 'pending';
+        }
+
+        // Update status pembayaran denda jika ada
+        if ($request->has('is_penalty_paid')) {
+            $loan->is_penalty_paid = $request->is_penalty_paid;
         }
 
         $loan->save();
@@ -209,12 +243,90 @@ class LoanAdminController extends Controller
             ->with('success', 'Status peminjaman berhasil diperbarui.');
     }
 
+    // Approve peminjaman khusus method
+    public function approve($id)
+    {
+        $loan = Loan::with('user', 'book')->findOrFail($id);
+
+        if ($loan->status !== 'pending') {
+            return redirect()->back()->with('error', 'Peminjaman ini tidak dalam status pending.');
+        }
+
+        $loan->status = 'approved';
+        $loan->borrowed_at = now();
+        $loan->save();
+
+        Notification::create([
+            'type' => 'approved',
+            'title' => 'Peminjaman Disetujui',
+            'message' => 'Admin menyetujui peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . '.',
+            'is_read' => false,
+            'user_id' => $loan->user->id,
+            'book_id' => $loan->book->id,
+        ]);
+
+        return redirect()->route('admin.loans.index')->with('success', 'Peminjaman berhasil disetujui.');
+    }
+
+    // Reject peminjaman khusus method
+    public function reject($id)
+    {
+        $loan = Loan::with('user', 'book')->findOrFail($id);
+
+        if ($loan->status !== 'pending') {
+            return redirect()->back()->with('error', 'Peminjaman ini tidak dalam status pending.');
+        }
+
+        $loan->status = 'rejected';
+        $loan->save();
+
+        Notification::create([
+            'type' => 'rejected',
+            'title' => 'Peminjaman Ditolak',
+            'message' => 'Admin menolak peminjaman buku "' . $loan->book->title . '" oleh ' . $loan->user->name . '.',
+            'is_read' => false,
+            'user_id' => $loan->user->id,
+            'book_id' => $loan->book->id,
+        ]);
+
+        return redirect()->route('admin.loans.index')->with('success', 'Peminjaman berhasil ditolak.');
+    }
+
+    // Bayar denda (update is_penalty_paid)
+    public function payPenalty(Request $request, $id)
+    {
+        $loan = Loan::with('user', 'book')->findOrFail($id);
+
+        if ($loan->penalty <= 0) {
+            return redirect()->back()->with('error', 'Tidak ada denda yang harus dibayar.');
+        }
+
+        if ($loan->is_penalty_paid) {
+            return redirect()->back()->with('error', 'Denda sudah dibayar.');
+        }
+
+        $loan->is_penalty_paid = true;
+        $loan->save();
+
+        Notification::create([
+            'type' => 'penalty_paid',
+            'title' => 'Denda Telah Dibayar',
+            'message' => 'Pengguna telah membayar denda untuk buku "' . $loan->book->title . '".',
+            'is_read' => false,
+            'user_id' => $loan->user->id,
+            'book_id' => $loan->book->id,
+        ]);
+
+        return redirect()->back()->with('success', 'Pembayaran denda berhasil.');
+    }
+
+    // Hapus peminjaman
     public function destroy($id)
     {
         $loan = Loan::findOrFail($id);
         $loan->delete();
 
         return redirect()->route('admin.loans.index')
-            ->with('success', 'Data peminjaman berhasil dihapus.');
+            ->with('success', 'Peminjaman berhasil dihapus.');
     }
 }

@@ -17,40 +17,54 @@ class LoanSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         DB::table('loans')->truncate();
-        DB::table('books')->truncate();
+        // Jangan truncate users & books di sini kalau sudah ada datanya,
+        // agar tidak hapus data lain yg mungkin penting.
+        // DB::table('users')->truncate();
+        // DB::table('books')->truncate();
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Buat user dan book baru
-        User::factory()->count(5)->create();
-        Book::factory()->count(10)->create();
+        // Pastikan user sudah ada, kalau belum buat dulu
+        if (User::count() === 0) {
+            User::factory()->count(5)->create();
+        }
 
-        // Ambil data user dan book
+        // Pastikan book sudah ada, kalau belum buat dulu
+        if (Book::count() === 0) {
+            Book::factory()->count(10)->create();
+        }
+
         $users = User::all();
         $books = Book::all();
 
-        // Pinjaman manual dengan status berbeda
-        Loan::create([
-            'user_id' => $users->random()->id,
-            'book_id' => $books->random()->id,
-            'borrowed_at' => Carbon::now()->subDays(3),
-            'returned_at' => null,
-            'status' => 'borrowed',
-        ]);
+        // Buat 20 pinjaman acak dengan status valid
+        for ($i = 0; $i < 20; $i++) {
+            $statuses = ['pending', 'approved', 'borrowed', 'returned', 'overdue'];
+            $status = $statuses[array_rand($statuses)];
 
-        Loan::create([
-            'user_id' => $users->random()->id,
-            'book_id' => $books->random()->id,
-            'borrowed_at' => Carbon::now()->subDays(10),
-            'returned_at' => Carbon::now()->subDays(5),
-            'status' => 'returned',
-        ]);
+            $borrowedAt = null;
+            $returnedAt = null;
 
-        // Buat 13 pinjaman acak, pakai user_id dan book_id dari data yang sudah ada
-        for ($i = 0; $i < 13; $i++) {
+            if (in_array($status, ['approved', 'borrowed', 'returned', 'overdue'])) {
+                $borrowedAt = Carbon::now()->subDays(rand(1, 30));
+            }
+
+            if ($status === 'returned' && $borrowedAt) {
+                $returnedAt = (clone $borrowedAt)->addDays(rand(1, 14));
+            }
+
+            if ($status === 'overdue' && $borrowedAt) {
+                $returnedAt = null; // belum dikembalikan tapi sudah lewat batas waktu
+            }
+
             Loan::factory()->create([
                 'user_id' => $users->random()->id,
                 'book_id' => $books->random()->id,
+                'status' => $status,
+                'borrowed_at' => $borrowedAt,
+                'returned_at' => $returnedAt,
+                'penalty' => 0,
+                'is_penalty_paid' => false,
             ]);
         }
     }

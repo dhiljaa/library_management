@@ -13,12 +13,33 @@ return new class extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('book_id')->constrained()->onDelete('cascade');
-            $table->timestamp('borrowed_at')->nullable(); // ✅ ditambahkan
-            $table->timestamp('returned_at')->nullable(); // ✅ ditambahkan
-            $table->enum('status', ['borrowed', 'returned'])->default('borrowed');
+
+            // Relasi ke tabel users dan books
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onDelete('cascade');
+
+            $table->foreignId('book_id')
+                ->constrained()
+                ->onDelete('cascade');
+
+            // Informasi waktu peminjaman dan pengembalian
+            $table->timestamp('borrowed_at')->nullable();
+            $table->timestamp('returned_at')->nullable();
+
+            // Status peminjaman
+            $table->enum('status', [
+                'pending',   // Menunggu persetujuan
+                'approved',  // Disetujui tapi belum diambil
+                'borrowed',  // Buku sedang dipinjam
+                'returned',  // Sudah dikembalikan
+                'overdue',   // Lewat batas waktu
+            ])->default('pending');
+
             $table->timestamps();
+
+            // Index untuk mempercepat query pencarian berdasarkan user, book, dan status
+            $table->index(['user_id', 'book_id', 'status']);
         });
     }
 

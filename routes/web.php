@@ -78,8 +78,12 @@ Route::middleware('auth')->group(function () {
      * Staff Routes
      * =======================
      */
-    Route::middleware('role:staff')->prefix('staff')->name('staff.')->group(function () {
-        Route::get('/loans', [LoanStaffController::class, 'index'])->name('loans.index');
-        Route::put('/loans/{id}', [LoanStaffController::class, 'update'])->name('loans.update');
-    });
+  Route::middleware('role:staff')->prefix('staff')->group(function () {
+    Route::get('/loans', [LoanStaffController::class, 'index']);
+    Route::put('/loans/{id}', [LoanStaffController::class, 'update']);
+    
+    // approve & reject
+    Route::put('/loans/{id}/approve', [LoanStaffController::class, 'approve']);
+    Route::put('/loans/{id}/reject', [LoanStaffController::class, 'reject']);
+});
 });

@@ -18,6 +18,7 @@
                     <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
                     <option value="borrowed" {{ request('status') == 'borrowed' ? 'selected' : '' }}>Borrowed</option>
                     <option value="returned" {{ request('status') == 'returned' ? 'selected' : '' }}>Returned</option>
+                    <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Overdue</option>
                 </select>
             </div>
 
@@ -80,7 +81,6 @@
             <thead class="bg-gray-50">
                 <tr>
                     @php
-                        // Helper untuk toggle arah sort
                         function sortDirectionToggle($currentDir) {
                             return $currentDir === 'asc' ? 'desc' : 'asc';
                         }
@@ -111,6 +111,9 @@
                             Status {!! $currentSortField === 'status' ? ($currentSortDirection === 'asc' ? '&#9650;' : '&#9660;') : '' !!}
                         </a>
                     </th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Denda (Rp)
+                    </th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
@@ -120,8 +123,8 @@
                         <td class="px-4 py-2 whitespace-nowrap">{{ $loan->id }}</td>
                         <td class="px-4 py-2 whitespace-nowrap">{{ $loan->user->name ?? '-' }}</td>
                         <td class="px-4 py-2 whitespace-nowrap">{{ $loan->book->title ?? '-' }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $loan->borrowed_at ? \Carbon\Carbon::parse($loan->borrowed_at)->format('d-m-Y') : '-' }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $loan->returned_at ? \Carbon\Carbon::parse($loan->returned_at)->format('d-m-Y') : '-' }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">{{ $loan->borrowed_at ? $loan->borrowed_at->format('d-m-Y') : '-' }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">{{ $loan->returned_at ? $loan->returned_at->format('d-m-Y') : '-' }}</td>
                         <td class="px-4 py-2 whitespace-nowrap">
                             @php
                                 $statusLabels = [
@@ -129,6 +132,8 @@
                                     'approved' => 'bg-blue-400 text-blue-900',
                                     'borrowed' => 'bg-indigo-400 text-indigo-900',
                                     'returned' => 'bg-green-400 text-green-900',
+                                    'rejected' => 'bg-red-400 text-red-900',
+                                    'overdue' => 'bg-red-600 text-white',
                                 ];
                                 $badgeClass = $statusLabels[$loan->status] ?? 'bg-gray-400 text-gray-900';
                             @endphp
@@ -136,10 +141,29 @@
                                 {{ ucfirst($loan->status) }}
                             </span>
                         </td>
+                        <td class="px-4 py-2 whitespace-nowrap text-right">
+                            {{ number_format($loan->penalty ?? 0, 0, ',', '.') }}
+                        </td>
                         <td class="px-4 py-2 whitespace-nowrap space-x-1">
                             <a href="{{ route('admin.loans.show', $loan->id) }}" class="inline-block px-2 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded shadow">Detail</a>
 
-                            @if($loan->status !== 'returned')
+                            @if($loan->status === 'pending')
+                                <!-- Tombol Accept -->
+                                <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah anda yakin ingin menerima peminjaman ini?')">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="px-2 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded shadow">Accept</button>
+                                </form>
+
+                                <!-- Tombol Reject -->
+                                <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah anda yakin ingin menolak peminjaman ini?')">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="px-2 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded shadow">Reject</button>
+                                </form>
+                            @elseif($loan->status !== 'returned' && $loan->status !== 'pending' && $loan->status !== 'rejected')
                                 <!-- Tombol Kembalikan -->
                                 <form action="{{ route('admin.loans.updateStatus', $loan->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah anda yakin ingin mengubah status menjadi Returned?')">
                                     @csrf
@@ -159,7 +183,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-gray-500">Data peminjaman tidak ditemukan.</td>
+                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">Tidak ada data peminjaman.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -167,13 +191,8 @@
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4 text-gray-600">
-        <div>
-            Menampilkan {{ $loans->firstItem() ?? 0 }} sampai {{ $loans->lastItem() ?? 0 }} dari total {{ $loans->total() }} data
-        </div>
-        <div>
-            {{ $loans->appends(request()->query())->links() }}
-        </div>
+    <div class="mt-4">
+        {{ $loans->appends(request()->except('page'))->links() }}
     </div>
 </div>
 @endsection
