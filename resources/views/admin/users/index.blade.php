@@ -33,6 +33,25 @@
     </div>
 @endif
 
+{{-- Form pencarian --}}
+<form method="GET" action="{{ route('admin.users.index') }}" class="mb-4">
+    <div class="flex items-center space-x-2">
+        <input 
+            type="text" 
+            name="search" 
+            value="{{ request('search') }}" 
+            placeholder="Cari nama atau email user..." 
+            class="px-4 py-2 border border-gray-300 rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+        <button 
+            type="submit" 
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+            Cari
+        </button>
+    </div>
+</form>
+
 <div class="overflow-x-auto">
     <table class="min-w-full border border-gray-300 table-auto">
         <thead class="bg-gray-100">
@@ -86,6 +105,6 @@
 </div>
 
 <div class="mt-4">
-    {{ $users->links('pagination::tailwind') }}
+    {{ $users->appends(request()->query())->links('pagination::tailwind') }}
 </div>
 @endsection

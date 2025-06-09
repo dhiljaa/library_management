@@ -10,10 +10,22 @@ use Illuminate\Support\Facades\Storage;
 
 class UserAdminController extends Controller
 {
-    // ✅ Tampilkan daftar user (kecuali admin)
-    public function index()
+    // ✅ Tampilkan daftar user (kecuali admin) dengan fitur pencarian
+    public function index(Request $request)
     {
-        $users = User::where('role', '!=', 'admin')->paginate(10);
+        $search = $request->input('search');
+
+        $users = User::where('role', '!=', 'admin');
+
+        if ($search) {
+            $users = $users->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $users->paginate(10)->withQueryString();
+
         return view('admin.users.index', compact('users'));
     }
 

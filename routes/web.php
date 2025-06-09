@@ -9,9 +9,8 @@ use App\Http\Controllers\Admin\LoanAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Staff\LoanStaffController;
 use App\Http\Controllers\Admin\ProfileAdminController;
-use App\Http\Controllers\Admin\NotificationController; // <-- tambah import controller notifikasi
+use App\Http\Controllers\Admin\NotificationController;
 
-// Halaman landing
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -21,7 +20,7 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Semua route berikut hanya untuk user yang login
+// Hanya untuk user yang login
 Route::middleware('auth')->group(function () {
 
     /**
@@ -38,8 +37,7 @@ Route::middleware('auth')->group(function () {
 
         // Buku dan Kategori
         Route::resource('/books', BookAdminController::class);
-        // 🔥 Tambahkan di routes/api.php (dalam group role:admin)
-Route::get('/books/popular', [BookAdminController::class, 'popular']); // Buku paling laris
+        Route::get('/books/popular', [BookAdminController::class, 'popular'])->name('books.popular');
 
         Route::resource('/categories', AdminCategoryController::class);
 
@@ -49,6 +47,10 @@ Route::get('/books/popular', [BookAdminController::class, 'popular']); // Buku p
         Route::put('/loans/{id}', [LoanAdminController::class, 'updateStatus'])->name('loans.updateStatus');
         Route::delete('/loans/{id}', [LoanAdminController::class, 'destroy'])->name('loans.destroy');
 
+        // 🔽 Tambahan fitur Export & Advanced Search 🔽
+        Route::get('/loans/export/pdf', [LoanAdminController::class, 'exportPDF'])->name('loans.export.pdf');
+        Route::get('/loans/search', [LoanAdminController::class, 'search'])->name('loans.search');
+
         // User Management
         Route::get('/users', [UserAdminController::class, 'index'])->name('users.index');
         Route::get('/users/{id}/edit', [UserAdminController::class, 'edit'])->name('users.edit');
@@ -57,8 +59,6 @@ Route::get('/books/popular', [BookAdminController::class, 'popular']); // Buku p
 
         // Statistik
         Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');
-
-        // Notification Routes untuk admin dan staff (tambahkan middleware role juga)
     });
 
     /**
