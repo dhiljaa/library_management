@@ -83,18 +83,17 @@ Dirancang untuk mendukung aplikasi mobile Flutter dengan fitur lengkap autentika
    php artisan storage:link
    ```
 
-5. Migrasi dan seed database:
-
-   ```bash
-   php artisan migrate --seed
-   ```
-
-6. Libray Pdf:
+5. Libray Pdf:
 
    ```bash
    composer require barryvdh/laravel-snappy
    ```
+   
+6. Migrasi dan seed database:
 
+   ```bash
+   php artisan migrate --seed
+   ```
 
 7. Jalankan server:
 
